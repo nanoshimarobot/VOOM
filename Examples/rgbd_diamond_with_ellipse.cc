@@ -136,7 +136,7 @@ int main(int argc, char **argv)
         
         filename = path_to_images + '/' + vstrImageFilenamesRGB[ni];//path_to_images + vstrImageFilenames[ni];
         imRGB = cv::imread(filename);//, cv::IMREAD_UNCHANGED);  // read image from disk
-        imD = cv::imread(path_to_images + '/' + vstrImageFilenamesD[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imD = cv::imread(path_to_images + '/' + vstrImageFilenamesD[ni],-1);
         
         double tframe = ni < vTimestamps.size() ? vTimestamps[ni] : std::time(nullptr);
         timestamps.push_back(tframe);

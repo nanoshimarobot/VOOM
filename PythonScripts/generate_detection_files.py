@@ -3,8 +3,11 @@ import os
 import cv2
 import json
 import math
+import glob
 from ultralytics import YOLO
 
+from typing import List, Tuple, Dict
+from ultralytics.engine.results import Results
 
 def get_image(ori_path, new_path=None, is_color=True, is_tum=False):
     head, filename = os.path.split(ori_path)
@@ -27,13 +30,18 @@ def estimate_mask_contour(mask_box):
         return None
     contour = sorted(contours, key=cv2.contourArea, reverse=True)[0]
     return contour
+    # return contours[/]
 
-filenames = json.load(open('support_files/diamond_dji.json'))
+# filenames = json.load(open('support_files/diamond_dji.json'))
 
-predictor = YOLO('/home/yutong/QISO_SLAM/support_files/weights/yolov8x-seg.pt')
+rgb_files = glob.glob("/home/toyozoshimada/sandbox_ws/tum_dataset/aist_lunchroom_aist_test_202503251717/rgb/*.png")
+# rgb_files = glob.glob("/home/toyozoshimada/Downloads/rgbd_dataset_freiburg2_desk/rgb/*.png")
+rgb_files = sorted(rgb_files, key=lambda x: float(x.split('/')[-1].rsplit('.', 1)[0]))
+
+predictor = YOLO('/home/toyozoshimada/Downloads/yolov8x-seg.pt')
 list_to_save = []
 count = 0
-for rgb_file in filenames['rgb']:
+for rgb_file in rgb_files:
     count += 1
     #if count == 10:
         #break
@@ -42,23 +50,43 @@ for rgb_file in filenames['rgb']:
     dict_per_im["file_name"] = filename
     dict_per_im["detections"] = []
     im_rgb = cv2.imread(rgb_file)
-    results = predictor.predict(im_rgb, save=False, conf=0.1, device=0, visualize=False, show=False)
+    orig_h, orig_w = im_rgb.shape[:2]
+    im_canvas = im_rgb.copy()
+    im_rgb = cv2.resize(im_rgb, (640, 480))
+    results: List[Results] = predictor(
+        im_rgb, save=False #, conf=0.1, device=0, visualize=False, show=False
+    )
     if results[0].masks is None:
         list_to_save.append(dict_per_im)
         continue
     boxes = results[0].boxes.to("cpu").numpy()
     masks = results[0].masks.to("cpu").numpy()
+
+    scale_x = orig_w / 640.0
+    scale_y = orig_h / 480.0
+
     for box_, cls, conf, mask in zip(boxes.xyxy, boxes.cls, boxes.conf, masks.data):
-        y1, x1, y2, x2 = box_
-        box = np.array([y1, x1, y2, x2], dtype=np.float64)
+        x1, y1, x2, y2 = box_
+        x1 *= scale_x
+        y1 *= scale_y
+        x2 *= scale_x
+        y2 *= scale_y
+        box = np.array([x1, y1, x2, y2], dtype=np.float64)
+
         contour = estimate_mask_contour(mask)
         if contour is None:
             continue
         if len(contour) < 10:
             continue
         ellipse = cv2.fitEllipse(contour)
+        (cx, cy), (w, h), angle = ellipse
+        cx *= scale_x
+        cy *= scale_y
+        w *= scale_x
+        h *= scale_y
+
         theta = ellipse[2] * math.pi / 180
-        ellipse_data = np.array([ellipse[0][0], ellipse[0][1], ellipse[1][0], ellipse[1][1], theta],
+        ellipse_data = np.array([cx, cy, w, h, angle],
                                 dtype=np.float64)
         category_id = int(cls)
         det = dict()
@@ -67,6 +95,11 @@ for rgb_file in filenames['rgb']:
         det["bbox"] = list(box)
         det["ellipse"] = list(ellipse_data)
         dict_per_im["detections"].append(det)
+
+        cv2.rectangle(im_canvas, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0))
+        cv2.ellipse(im_canvas, ((cx,cy),(w,h), angle), (0, 0, 255))
+
+    cv2.imwrite(f"/home/toyozoshimada/sandbox_ws/tum_dataset/aist_lunchroom_aist_test_202503251717/test/{rgb_file.split("/")[-1]}", im_canvas)
     list_to_save.append(dict_per_im)
-with open('support_files/detections_yolov8x_seg_diamond_dji_with_ellipse.json', 'w') as outfile:
+with open('/home/toyozoshimada/sandbox_ws/tum_dataset/aist_lunchroom_aist_test_202503251717/detections_yolov8x_seg_aist_lunchroom_with_ellipse.json', 'w') as outfile:
     json.dump(list_to_save, outfile)

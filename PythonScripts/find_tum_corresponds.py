@@ -7,7 +7,7 @@ from yaml.loader import SafeLoader
 
 # Open the file and load the file
 rgb_files = sorted(filter(os.path.isfile, glob.glob(
-    '/home/yutong/data/rgbd_dataset_freiburg2_large_with_loop/rgb/' + '*.png')))
+    '/home/toyozoshimada/sandbox_ws/tum_dataset/aist_hallway2_round_with_2person_202503251043/rgb/' + '*.png')))
 rgb_filenames = []
 for file in rgb_files:
     head, filename = os.path.split(file)
@@ -16,7 +16,7 @@ for file in rgb_files:
 print('r',len(rgb_filenames))
 
 depth_files = sorted(filter(os.path.isfile, glob.glob(
-    '/home/yutong/data/rgbd_dataset_freiburg2_large_with_loop/depth/' + '*.png')))
+    '/home/toyozoshimada/sandbox_ws/tum_dataset/aist_hallway2_round_with_2person_202503251043/depth/' + '*.png')))
 depth_filenames = []
 for file in depth_files:
     head, filename = os.path.split(file)
@@ -36,7 +36,7 @@ for i in range(len(rgb_filenames)):
     print(rgb_time, depth_filenames[j])
     corres_depth.append(depth_files[j])
 
-gt = np.loadtxt('/home/yutong/data/rgbd_dataset_freiburg2_large_with_loop/groundtruth.txt', delimiter=' ')
+gt = np.loadtxt('/home/toyozoshimada/sandbox_ws/tum_dataset/aist_hallway2_round_with_2person_202503251043/groundtruth.txt', delimiter=' ')
 timestamp_gt = list(np.array(gt)[:, 0])
 #print(len(timestamp_gt))
 corres_gt = []

@@ -252,6 +252,9 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,bProcessDepth);
     //ADDED BY YUTONG TO PROCESS DETECTION TO AVOID SIMILAR DETS
     current_frame_detections_.clear();
+
+    std::cout << "detections size : " << detections.size() << std::endl;
+    std::cout << "timestamp : " << timestamp << std::endl;
     for(auto det1 : detections){
         bool has_similar_det = false;
          //0.2, 300, 0.3, 5, 0.4 for diamond
@@ -259,7 +262,11 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
         if(det1->score < 0.2 || bbox_area(det1->bbox) < 300 ||
             bbox_area(det1->bbox) > 0.5*im_rgb_.rows*im_rgb_.cols ||
             //is_near_boundary(det1->bbox, im_rgb_.cols, im_rgb_.rows, 10) ||
-            bboxes_iou(det1->bbox, det1->ell.ComputeBbox())<0.2) 
+            bboxes_iou(det1->bbox, det1->ell.ComputeBbox())<0.4) 
+            // std::cout << "det1->scpre < 0.2 : " << std::boolalpha << (det1->score < 0.2) << std::endl;
+            // std::cout << "bbox_area(det1->bbox) < 300 : " << std::boolalpha << (bbox_area(det1->bbox) < 300) << std::endl;
+            // std::cout << "bbox_area(det1->bbox) > 0.5*im_rgb_.rows*im_rgb_.cols : " << std::boolalpha << (bbox_area(det1->bbox) > 0.5*im_rgb_.rows*im_rgb_.cols) << std::endl;
+            // std::cout << "bboxes_iou(det1->bbox, det1->ell.ComputeBbox()) : " << bboxes_iou(det1->bbox, det1->ell.ComputeBbox()) << std::endl;
             continue;
         //if(det1->category_id==0 || det1->category_id==56) continue; //person & chair
         for (auto det2 : current_frame_detections_ ){
@@ -280,6 +287,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     current_depth_data_per_det_.clear();
     current_depth_data_per_det_.resize(current_frame_detections_.size(), std::make_pair(0.0f, 0.0f));
 
+    std::cout << "current frame detections : " <<  current_frame_detections_.size() << std::endl;
     for (size_t i = 0; i < current_frame_detections_.size(); ++i) {
         auto det = current_frame_detections_[i];
         auto bbox = det->bbox;

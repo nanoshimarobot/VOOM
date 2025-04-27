@@ -34,7 +34,7 @@ def estimate_mask_contour(mask_box):
 
 # filenames = json.load(open('support_files/diamond_dji.json'))
 
-rgb_files = glob.glob("/home/toyozoshimada/sandbox_ws/tum_dataset/aist_lunchroom_aist_test_202503251717/rgb/*.png")
+rgb_files = glob.glob("/home/toyozoshimada/sandbox_ws/tum_dataset/aist_ws_aist_test_202503261114/rgb/*.png")
 # rgb_files = glob.glob("/home/toyozoshimada/Downloads/rgbd_dataset_freiburg2_desk/rgb/*.png")
 rgb_files = sorted(rgb_files, key=lambda x: float(x.split('/')[-1].rsplit('.', 1)[0]))
 
@@ -99,7 +99,7 @@ for rgb_file in rgb_files:
         cv2.rectangle(im_canvas, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0))
         cv2.ellipse(im_canvas, ((cx,cy),(w,h), angle), (0, 0, 255))
 
-    cv2.imwrite(f"/home/toyozoshimada/sandbox_ws/tum_dataset/aist_lunchroom_aist_test_202503251717/test/{rgb_file.split("/")[-1]}", im_canvas)
+    cv2.imwrite(f"/home/toyozoshimada/sandbox_ws/tum_dataset/aist_ws_aist_test_202503261114/test/{rgb_file.split("/")[-1]}", im_canvas)
     list_to_save.append(dict_per_im)
-with open('/home/toyozoshimada/sandbox_ws/tum_dataset/aist_lunchroom_aist_test_202503251717/detections_yolov8x_seg_aist_lunchroom_with_ellipse.json', 'w') as outfile:
+with open('/home/toyozoshimada/sandbox_ws/tum_dataset/aist_ws_aist_test_202503261114/detections_yolov8x_seg_aist_lunchroom_with_ellipse.json', 'w') as outfile:
     json.dump(list_to_save, outfile)

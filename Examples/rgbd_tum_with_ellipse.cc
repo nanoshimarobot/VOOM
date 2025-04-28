@@ -129,6 +129,7 @@ int main(int argc, char **argv)
     int ni = 0;
     while (1)
     {
+        std::cout << "ima koko" << std::endl;
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
         std::string filename;
         filename = path_to_images + '/' + vstrImageFilenamesRGB[ni];//path_to_images + vstrImageFilenames[ni];
@@ -142,7 +143,8 @@ int main(int argc, char **argv)
         {
             cerr << endl << "Failed to load image: "
                  << filename << endl;
-            return 1;
+            // return 1;
+            continue;
         }
         filenames.push_back(filename);
 
